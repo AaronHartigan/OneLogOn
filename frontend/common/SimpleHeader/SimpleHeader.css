@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css?family=Capriola');
+@import url('https://fonts.googleapis.com/css?family=Lato');
 .root {
   width: 100%;
   background-color: #f5f5f5;
@@ -9,7 +9,7 @@
   padding: 20px 20px 20px 40px;
   font-size: 3em;
   line-height: 3rem;
-  font-family: 'Capriola', sans-serif;
+  font-family: 'Lato', sans-serif;
   font-weight: 100;
 }
 

@@ -1,9 +1,19 @@
-.calendarWrapper {
+.flex {
   display: flex;
+}
+
+.block {
+  display: block;
+  position: relative;
+}
+
+.wideCalendarButton {
+  width: 190px !important;
 }
 
 .calendarDate {
   width: 135px;
+  padding: 0 10px;
 }
 
 .calendar {
@@ -46,6 +56,37 @@
 .calendarSideButton:hover {
 }
 
+.spacer {
+  margin: 10px 0;
+}
+
 .none {
   display: none;
+}
+
+.timePeriodWrapper {
+  display: flex;
+}
+
+.timePeriod {
+  height: 35px;
+  width: 70px;
+  box-sizing: border-box;
+  box-shadow: 0 0 0 1px #c9cacd inset;
+  color: #282c36;
+  font-size: 16px;
+  border-radius: 2px;
+  cursor: pointer;
+  white-space: nowrap;
+  line-height: 35px;
+  text-align: center;
+  padding: 0 8px;
+  margin: 0 6px 0 0;
+  user-select: none;
+}
+
+.selectedTimePeriod {
+  box-shadow: 0 0 3px 2px #acadaf inset;
+  background-color: #f2f3f7;
+  color: #000;
 }

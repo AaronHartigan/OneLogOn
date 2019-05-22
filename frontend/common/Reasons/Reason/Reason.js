@@ -45,7 +45,7 @@ export default class Reason extends Component {
   };
 
   toggleIsArchived = e => {
-    this.props.editReason(this.props.reasonId, 'is_active', this.props.isArchived);
+    this.props.editReason(this.props.reasonId, { is_active: this.props.isArchived });
     this.setState({ isEdit: false });
   };
 

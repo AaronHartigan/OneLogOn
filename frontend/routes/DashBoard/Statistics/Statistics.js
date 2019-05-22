@@ -29,11 +29,32 @@ const calculateAverageDuration = visitors => {
   return Math.round(minutes / count);
 };
 
+const calculateTotalDuration = visitors => {
+  let minutes = 0;
+  visitors.forEach(visitor => {
+    if (!visitor.check_out || !visitor.check_in) {
+      return 'continue';
+    }
+    let visitTime = new Date(visitor.check_out) - new Date(visitor.check_in);
+    minutes += visitTime / (60 * 1000);
+  });
+  return Math.round(minutes);
+};
+
+const formatTime = minutes => {
+  if (minutes > 60) {
+    let modMinutes = minutes % 60;
+    return `${Math.floor(minutes / 60)}.${Math.round(modMinutes / 60)} hours`;
+  }
+  return `${minutes} minutes`;
+};
+
 export default class Statistics extends Component {
   state = {
     visitors: [],
     selectedDate: new Date(),
     showExportModal: false,
+    timePeriod: 'day',
     isLoading: false,
     error: null,
   };
@@ -45,21 +66,34 @@ export default class Statistics extends Component {
     });
   };
 
-  setDate = async date => {
-    const visitors = await this.getVisitors(date);
+  setDate = async (date, timePeriod = 'day') => {
+    const visitors = await this.getVisitors(date, timePeriod);
     this.setState({
       selectedDate: date,
       visitors: visitors || [],
+      timePeriod,
     });
   };
 
-  getVisitors = async date => {
+  getVisitors = async (date, timePeriod) => {
     try {
       this.setState({ isLoading: true, error: null });
+      let curDate = new Date(date);
       let nextDate = new Date(date);
-      nextDate.setDate(date.getDate() + 1);
+      if (timePeriod === 'day') {
+        nextDate.setDate(date.getDate() + 1);
+      } else if (timePeriod === 'week') {
+        let firstOfWeek = curDate.getDate() - curDate.getDay();
+        curDate.setDate(firstOfWeek);
+        nextDate.setMonth(curDate.getMonth());
+        nextDate.setDate(curDate.getDate() + 7);
+      } else if (timePeriod === 'month') {
+        curDate.setDate(1);
+        nextDate.setDate(1);
+        nextDate.setMonth(nextDate.getMonth() + 1);
+      }
 
-      const visitor_data = await fetchVisitors(date, nextDate);
+      const visitor_data = await fetchVisitors(curDate, nextDate);
       this.setState({
         isLoading: false,
       });
@@ -85,7 +119,8 @@ export default class Statistics extends Component {
   };
 
   render() {
-    const { selectedDate } = this.state;
+    const { selectedDate, timePeriod } = this.state;
+
     let statistics;
     if (this.state.error) {
       statistics = <div className={s.largeMessage}>{this.state.error}</div>;
@@ -106,22 +141,34 @@ export default class Statistics extends Component {
             <div className={s.statistic}>
               <div className={s.description}>Avg Duration</div>
               <div className={s.number}>
-                {calculateAverageDuration(this.state.visitors)} minutes
+                {formatTime(calculateAverageDuration(this.state.visitors))}
+              </div>
+            </div>
+            <div className={s.statistic}>
+              <div className={s.description}>Total Duration</div>
+              <div className={s.number}>
+                {formatTime(calculateTotalDuration(this.state.visitors))}
               </div>
             </div>
           </div>
-          <MyTable visitors={this.state.visitors} />
+          {timePeriod === 'day' && <MyTable visitors={this.state.visitors} />}
         </React.Fragment>
       );
     } else {
-      statistics = <div className={s.largeMessage}>No visitors on {formatDate(selectedDate)}.</div>;
+      let emptyMessage = 'No visitors during ' + formatDate(selectedDate, timePeriod) + '.';
+      statistics = <div className={s.largeMessage}>{emptyMessage}</div>;
     }
     return (
       <React.Fragment>
         <SimpleHeader title="Statistics" />
         <div className={s.root}>
           <div className={s.flex}>
-            <Calendar setDate={this.setDate} date={this.state.selectedDate} showSideArrows />
+            <Calendar
+              setDate={this.setDate}
+              date={this.state.selectedDate}
+              showSideArrows
+              showTimePeriods
+            />
             <Button className={s.right} onClick={this.showExportModal} variant="success">
               Export
             </Button>

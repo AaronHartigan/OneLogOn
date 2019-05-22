@@ -92,7 +92,7 @@ class DashBoard extends Component {
               onClick={this.state.sideBarOpen == true ? this.closeSideMenu : this.openSideMenu}
             />
             <img className={s.sideNavLogo} alt="" src={logo} width="30" height="30" />
-            <p className={s.sideNavTitle}>DashBoard</p>
+            <p className={s.sideNavTitle}>Dashboard</p>
           </div>
           {dashboardRoutes.map(route => {
             if (route.protected && user.is_staff) {
