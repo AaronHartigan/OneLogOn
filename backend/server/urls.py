@@ -40,6 +40,8 @@ urlpatterns = [
     path('api/checkinvisitreason/create', views.CheckInVisitReasonCreateView.as_view()),
     path('api/checkinvisitreason/<pk>', views.CheckInVisitReasonDetailView.as_view()),
 
+    path('api/employee/<visitor_id>/timecard/<month>/<year>', views.EmployeeTimecardView.as_view()),
+
     path('api/login', MyTokenObtainPairView.as_view()),
     path('api/kioskmode', MyKioskTokenObtainPairView.as_view()),
     path('api/refresh', TokenRefreshView.as_view()),

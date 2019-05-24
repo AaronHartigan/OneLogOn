@@ -153,7 +153,7 @@ export default class EmployeeRow extends Component {
             </div>
           </td>
           <td className={s.timecardField}>
-            <Timecard employee={employee} editMode={editMode} />
+            <Timecard employee={employee} />
           </td>
           <td className={s.buttonField}>
             <Button variant="secondary" disabled={isSaving} size="sm" onClick={this.cancelEdit}>

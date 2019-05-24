@@ -7,7 +7,6 @@ import s from './Timecard.css';
 export default class Timecard extends Component {
   static propTypes = {
     employee: PropTypes.object.isRequired,
-    editMode: PropTypes.bool.isRequired,
   };
 
   state = {
@@ -36,19 +35,15 @@ export default class Timecard extends Component {
   };
 
   render() {
-    let text = this.props.editMode ? 'Edit' : 'View';
-
     return (
       <div>
         <EditModal
           employee={this.props.employee}
           show={this.state.showModal}
           onHide={this.hideModal}
-          updateEmployee={this.updateEmployee}
-          editMode={this.props.editMode}
         />
         <Button size="sm" onClick={this.handleClick} className={s.button}>
-          {text}
+          View
         </Button>
       </div>
     );

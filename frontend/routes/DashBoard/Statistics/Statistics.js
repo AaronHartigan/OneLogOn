@@ -75,7 +75,7 @@ export default class Statistics extends Component {
     });
   };
 
-  getVisitors = async (date, timePeriod) => {
+  getVisitors = async (date, timePeriod = 'day') => {
     try {
       this.setState({ isLoading: true, error: null });
       let curDate = new Date(date);

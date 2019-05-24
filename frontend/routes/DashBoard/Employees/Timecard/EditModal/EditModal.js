@@ -1,35 +1,55 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Modal, Button, InputGroup } from 'react-bootstrap';
-import formatDate from 'utils/formatDate';
+import { Alert, Modal, Button, InputGroup } from 'react-bootstrap';
+import TimesTable from '../../TimesTable/TimesTable';
 import Calendar from 'common/Calendar/Calendar';
 import FancyTextField from 'common/FancyTextField/FancyTextField';
 import s from './EditModal.css';
+import myFetch from 'utils/fetch';
 
 export default class EditModal extends Component {
   static propTypes = {
     employee: PropTypes.object.isRequired,
-    updateEmployee: PropTypes.func.isRequired,
     show: PropTypes.bool.isRequired,
     onHide: PropTypes.func.isRequired,
-    editMode: PropTypes.bool.isRequired,
   };
 
   state = {
-    employee: {},
+    data: [],
     selectedDate: new Date(),
-    hiredDate: new Date(),
-    checkinTime: '00:00',
-    checkoutTime: '00:00',
     error: null,
     isLoading: false,
   };
 
-  componentWillReceiveProps(props) {
-    this.setState({
-      hiredDate: formatDate(new Date(props.employee.date_hired)),
-    });
+  async componentDidUpdate(prevProps, prevState, snapshot) {
+    if (prevProps.show === false && this.props.show === true) {
+      this.updateTimecard();
+    }
   }
+
+  updateTimecard = async () => {
+    try {
+      this.setState({
+        error: null,
+        isLoading: true,
+      });
+      const { selectedDate } = this.state;
+      const data = await myFetch(
+        `/api/employee/${this.props.employee.id}/timecard/${selectedDate.getMonth() +
+          1}/${selectedDate.getFullYear()}`,
+      );
+
+      this.setState({
+        data,
+        isLoading: false,
+      });
+    } catch (err) {
+      this.setState({
+        isLoading: false,
+        error: err.message,
+      });
+    }
+  };
 
   handleChange = event => {
     const target = event.target;
@@ -45,24 +65,18 @@ export default class EditModal extends Component {
     this.setState({
       selectedDate: date,
     });
+    this.updateTimecard();
   };
 
   render() {
-    const { error, selectedDate, checkinTime, checkoutTime, hiredDate } = this.state;
-    const { editMode, onHide, updateEmployee } = this.props;
+    const { error, isLoading, selectedDate } = this.state;
+    const { onHide } = this.props;
 
     let errorMessage = null;
     if (error) {
       errorMessage = <Alert variant="danger">{error}</Alert>;
     }
     let submitButton = null;
-    if (editMode) {
-      submitButton = (
-        <Button variant="success" onClick={onHide}>
-          Save changes
-        </Button>
-      );
-    }
 
     return (
       <Modal
@@ -82,50 +96,18 @@ export default class EditModal extends Component {
               setDate={this.setDate}
               date={selectedDate}
               showSideArrows
+              timePeriod={'month'}
             />
           </div>
         </Modal.Header>
         {errorMessage}
         <Modal.Body>
-          <InputGroup className={s.margin}>
-            <InputGroup.Prepend className={s.paddingRight}>
-              <InputGroup.Text className={s.whiteBg}>Date Hired</InputGroup.Text>
-            </InputGroup.Prepend>
-            <FancyTextField
-              className={s.textfield}
-              placeholder="Last Name"
-              name="lastName"
-              value={hiredDate}
-              onChange={this.handleChange}
-              disabled={editMode ? false : true}
-            />
-          </InputGroup>
-          <InputGroup className={s.margin}>
-            <InputGroup.Prepend className={s.paddingRight}>
-              <InputGroup.Text className={s.whiteBg}>Checkin Time</InputGroup.Text>
-            </InputGroup.Prepend>
-            <FancyTextField
-              className={s.textfield}
-              placeholder="Last Name"
-              name="lastName"
-              value={checkinTime}
-              onChange={this.handleChange}
-              disabled={editMode ? false : true}
-            />
-          </InputGroup>
-          <InputGroup className={s.margin}>
-            <InputGroup.Prepend className={s.paddingRight}>
-              <InputGroup.Text className={s.whiteBg}>Checkout Time</InputGroup.Text>
-            </InputGroup.Prepend>
-            <FancyTextField
-              className={s.textfield}
-              placeholder="Last Name"
-              name="lastName"
-              value={checkoutTime}
-              onChange={this.handleChange}
-              disabled={editMode ? false : true}
-            />
-          </InputGroup>
+          <TimesTable
+            checkIns={this.state.data}
+            month={this.state.selectedDate.getMonth()}
+            year={this.state.selectedDate.getFullYear()}
+            isLoading={isLoading}
+          />
         </Modal.Body>
         <Modal.Footer>
           <Button onClick={onHide} variant="secondary">

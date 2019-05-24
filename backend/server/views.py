@@ -499,6 +499,48 @@ class CheckInVisitReasonCreateView(generics.CreateAPIView):
             headers = self.get_success_headers(serializer.data)
             return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
 
+class EmployeeTimecardView(generics.RetrieveAPIView):
+    lookup_field = 'visitor_id'
+    queryset = Visitors.objects.all()
+    serializer_class = VisitorsSerializer
+
+    def get(self, request, visitor_id, month, year, *args, **kwargs):
+        request.data['company'] = UserCompany.objects.get(user_id=request.user.id).company_id
+        # get the optional parameter
+        is_employee = self.request.query_params.get('is_employee', None)
+
+        # get current company for the correct visitors
+        company_id = getCompanyID(request)
+
+        # grab a list of all the visitors
+        visitor = Visitors.objects.get(company=company_id, id=visitor_id)
+
+        startBillingTime = datetime(int(year), int(month), 25)
+        startBillingTime = localizeDateTime(startBillingTime)
+
+        if int(month) == 12:
+            endBillingTime = startBillingTime.replace(year=int(year)+1, month=1, day=24)
+        else:
+            endBillingTime = startBillingTime.replace(month=int(month)+1, day=24)
+
+        # get all CheckIns
+        c = CheckIns.objects.all().filter(
+            visitor_id=visitor.id,
+            visitor__company=company_id,
+            check_in__gte=startBillingTime,
+            check_in__lte=endBillingTime
+        ).order_by('-check_in')
+
+        # format as JSON and send it back
+        # this returns an array of json values per checkin -- probably what we wont
+        check_ins = list(c.values(
+            'visitor_id',
+            'check_in',
+            'check_out',
+        ))
+
+        return JsonResponse(check_ins, safe=False)
+
 
 class UserCreate(APIView):
     permission_classes = []
